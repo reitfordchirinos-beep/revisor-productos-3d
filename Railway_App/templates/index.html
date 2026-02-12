@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisor de Productos 3D - Kalstein</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2E5090 0%, #4472C4 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4472C4;
+            box-shadow: 0 0 0 3px rgba(68, 114, 196, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #4472C4 0%, #2E5090 100%);
+            color: white;
+        }
+
+        .btn-download:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(68, 114, 196, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar-container {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4472C4;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #2E5090;
+        }
+
+        .stat-card.sin-3d .stat-value {
+            color: #dc3545;
+        }
+
+        .stat-card.con-3d .stat-value {
+            color: #28a745;
+        }
+
+        .log-section {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Revisor de Productos 3D</h1>
+            <p>Detecta productos sin modelo 3D interactivo</p>
+        </div>
+
+        <div class="content">
+            <div id="alert" class="alert"></div>
+
+            <div class="form-group">
+                <label for="url">🌐 URL del sitio web:</label>
+                <input type="text" id="url" placeholder="https://kalstein.co.ve/productos/" 
+                       value="https://kalstein.co.ve/productos/">
+            </div>
+
+            <div class="form-group">
+                <label for="paginas">📄 Número de páginas a revisar:</label>
+                <input type="number" id="paginas" placeholder="104" value="104" min="1" max="500">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="btnIniciar" onclick="iniciarRevision()">
+                    ▶️ Comenzar Revisión
+                </button>
+                <button class="btn btn-secondary" id="btnLimpiar" onclick="limpiarResultados()">
+                    🗑️ Limpiar
+                </button>
+            </div>
+
+            <div class="progress-section" id="progressSection">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar">0%</div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Página actual</div>
+                        <div class="stat-value" id="statPagina">0/0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total productos</div>
+                        <div class="stat-value" id="statTotal">0</div>
+                    </div>
+                    <div class="stat-card sin-3d">
+                        <div class="stat-label">Sin modelo 3D</div>
+                        <div class="stat-value" id="statSin3D">0</div>
+                    </div>
+                    <div class="stat-card con-3d">
+                        <div class="stat-label">Con modelo 3D</div>
+                        <div class="stat-value" id="statCon3D">0</div>
+                    </div>
+                </div>
+
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn btn-download" id="btnDescargar" onclick="descargarExcel()" disabled>
+                        📥 Descargar Excel
+                    </button>
+                </div>
+
+                <div class="log-section" id="logSection"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>💡 Herramienta profesional para auditar modelos 3D en sitios WordPress</p>
+            <p style="font-size: 0.9em; margin-top: 5px;">Versión 1.0 - Powered by Railway</p>
+        </div>
+    </div>
+
+    <script>
+        let resultadosActuales = null;
+
+        function mostrarAlerta(mensaje, tipo = 'success') {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${tipo} show`;
+            alert.textContent = mensaje;
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+
+        function agregarLog(mensaje) {
+            const logSection = document.getElementById('logSection');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${timestamp}] ${mensaje}`;
+            logSection.insertBefore(entry, logSection.firstChild);
+        }
+
+        async function iniciarRevision() {
+            const url = document.getElementById('url').value.trim();
+            const paginas = parseInt(document.getElementById('paginas').value);
+
+            if (!url || !url.startsWith('http')) {
+                mostrarAlerta('Por favor introduce una URL válida que comience con http:// o https://', 'error');
+                return;
+            }
+
+            if (!paginas || paginas < 1) {
+                mostrarAlerta('Por favor introduce un número válido de páginas', 'error');
+                return;
+            }
+
+            // Deshabilitar botones
+            document.getElementById('btnIniciar').disabled = true;
+            document.getElementById('btnIniciar').innerHTML = '<span class="spinner"></span> Procesando...';
+            document.getElementById('progressSection').classList.add('active');
+
+            // Limpiar log
+            document.getElementById('logSection').innerHTML = '';
+            agregarLog('🚀 Iniciando revisión...');
+            agregarLog(`📋 URL: ${url}`);
+            agregarLog(`📄 Páginas: ${paginas}`);
+
+            try {
+                const response = await fetch('/revisar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url, paginas })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Actualizar estadísticas
+                const porcentaje = 100;
+                document.getElementById('progressBar').style.width = porcentaje + '%';
+                document.getElementById('progressBar').textContent = porcentaje + '%';
+                document.getElementById('statPagina').textContent = `${paginas}/${paginas}`;
+                document.getElementById('statTotal').textContent = data.total_productos;
+                document.getElementById('statSin3D').textContent = data.sin_3d;
+                document.getElementById('statCon3D').textContent = data.con_3d;
+
+                // Guardar resultados
+                resultadosActuales = { ...data.datos, url };
+
+                // Habilitar descarga
+                document.getElementById('btnDescargar').disabled = false;
+
+                agregarLog('✅ Revisión completada exitosamente');
+                agregarLog(`📊 Total: ${data.total_productos} productos`);
+                agregarLog(`⚠️ Sin modelo 3D: ${data.sin_3d}`);
+                agregarLog(`✓ Con modelo 3D: ${data.con_3d}`);
+
+                mostrarAlerta(`¡Revisión completada! ${data.sin_3d} productos sin modelo 3D encontrados.`, 'success');
+
+            } catch (error) {
+                agregarLog(`❌ Error: ${error.message}`);
+                mostrarAlerta(`Error: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('btnIniciar').disabled = false;
+                document.getElementById('btnIniciar').innerHTML = '▶️ Comenzar Revisión';
+            }
+        }
+
+        async function descargarExcel() {
+            if (!resultadosActuales) {
+                mostrarAlerta('No hay resultados para descargar', 'error');
+                return;
+            }
+
+            agregarLog('📥 Generando archivo Excel...');
+
+            try {
+                const response = await fetch('/descargar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(resultadosActuales)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al generar el archivo');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Reporte_Productos_3D_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                agregarLog('✅ Archivo Excel descargado correctamente');
+                mostrarAlerta('Archivo Excel descargado exitosamente', 'success');
+
+            } catch (error) {
+                agregarLog(`❌ Error al descargar: ${error.message}`);
+                mostrarAlerta(`Error al descargar: ${error.message}`, 'error');
+            }
+        }
+
+        function limpiarResultados() {
+            document.getElementById('progressSection').classList.remove('active');
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').textContent = '0%';
+            document.getElementById('statPagina').textContent = '0/0';
+            document.getElementById('statTotal').textContent = '0';
+            document.getElementById('statSin3D').textContent = '0';
+            document.getElementById('statCon3D').textContent = '0';
+            document.getElementById('logSection').innerHTML = '';
+            document.getElementById('btnDescargar').disabled = true;
+            resultadosActuales = null;
+            agregarLog('🗑️ Resultados limpiados');
+        }
+    </script>
+</body>
+</html>

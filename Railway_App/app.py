@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-REVISOR DE PRODUCTOS 3D - APLICACIÓN WEB
+REVISOR DE PRODUCTOS 3D - APLICACIÓN WEB CORREGIDA
 Versión para Railway - Acceso mediante enlace web
-
-Detecta productos sin modelo 3D en sitios WordPress con plugin 3D Viewer
 """
 
 from flask import Flask, render_template, request, jsonify, send_file
@@ -15,11 +13,10 @@ from datetime import datetime
 import re
 import io
 import os
+import time
 
 app = Flask(__name__)
-
-# Configuración
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 def tiene_modelo_3d(producto_html):
     """Detecta si un producto tiene modelo 3D"""
@@ -28,27 +25,21 @@ def tiene_modelo_3d(producto_html):
     else:
         soup = producto_html
     
-    # Buscar <model-viewer>
-    model_viewer = soup.find('model-viewer')
-    if model_viewer:
-        src = model_viewer.get('src', '')
+    if soup.find('model-viewer'):
+        src = soup.find('model-viewer').get('src', '')
         if '.glb' in src.lower():
             return True, "Modelo 3D (.glb)"
         return True, "Model viewer"
     
-    # Buscar clase modelViewerBlock
     if soup.find(class_='modelViewerBlock'):
         return True, "modelViewerBlock"
     
-    # Buscar .glb en HTML
     if '.glb' in str(soup).lower():
         return True, "Archivo .glb"
     
-    # Buscar ID de modelo
     if re.search(r'id="model\d+"', str(soup)):
         return True, "ID modelo"
     
-    # Buscar clase b3dviewer
     if soup.find(class_=re.compile(r'b3dviewer')):
         return True, "b3dviewer"
     
@@ -74,6 +65,10 @@ def revisar():
         todos_productos = []
         errores = []
         
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        
         for num_pagina in range(1, total_paginas + 1):
             try:
                 # Construir URL
@@ -86,7 +81,6 @@ def revisar():
                         url = f"{base_url}?product-page={num_pagina}"
                 
                 # Hacer petición
-                headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
                 response = requests.get(url, headers=headers, timeout=30)
                 response.raise_for_status()
                 
@@ -124,13 +118,16 @@ def revisar():
                     if not tiene_3d:
                         productos_sin_3d.append(info)
                 
-                # Enviar progreso
-                yield f"data: {jsonify({'pagina': num_pagina, 'total': total_paginas, 'sin_3d': len(productos_sin_3d), 'total_productos': len(todos_productos)}).get_data(as_text=True)}\n\n"
+                # Pequeña pausa entre peticiones
+                time.sleep(0.3)
                 
             except Exception as e:
-                errores.append({'pagina': num_pagina, 'error': str(e)})
+                errores.append({
+                    'pagina': num_pagina,
+                    'error': str(e)
+                })
         
-        # Guardar resultados en sesión o retornarlos
+        # Retornar resultados
         resultado = {
             'completado': True,
             'total_productos': len(todos_productos),
@@ -214,7 +211,7 @@ def descargar():
 @app.route('/health')
 def health():
     """Health check para Railway"""
-    return jsonify({'status': 'ok', 'version': '1.0.0'})
+    return jsonify({'status': 'ok', 'version': '1.0.1'})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
